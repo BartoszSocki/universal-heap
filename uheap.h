@@ -5,21 +5,21 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-static void swap(void* a, void* b) {
-	void* tmp = a;
-	a = b;
-	b = tmp;
-}
 
 #define DEFINE_HEAP_OF(type, prefix) \
 typedef struct prefix##_heap_t { \
 	type** arr; \
 	uint32_t max_size; \
 	uint32_t cur_size; \
-	uint8_t (*cmp)(void*, void*); \
+	uint8_t (*cmp)(type*, type*); \
 } prefix##_heap; \
 \
-static void prefix##_heapify(prefix##_heap* self, uint32_t cur_size, uint32_t i) { \
+void prefix##_swap(type** a, type** b) { \
+	type* tmp = *a; \
+	*a = *b; \
+	*b = tmp; \
+} \
+void prefix##_heapify(prefix##_heap* self, uint32_t cur_size, uint32_t i) { \
 	if (self->arr == NULL) \
 		abort(); \
 	\
@@ -27,17 +27,19 @@ static void prefix##_heapify(prefix##_heap* self, uint32_t cur_size, uint32_t i)
 	uint32_t left = 2 * i + 1; \
 	uint32_t right = 2 * i + 2; \
 	\
-	if (left < cur_size && self->cmp(self->arr[left], self->arr[value])) \
+	if (left < cur_size && self->cmp(self->arr[left], self->arr[value])) { \
 		value = left; \
-	if (right < cur_size && self->cmp(self->arr[right], self->arr[value])) \
+	} \
+	if (right < cur_size && self->cmp(self->arr[right], self->arr[value])) { \
 		value = right; \
+	} \
 	\
 	if (value != i) { \
-		swap(self->arr[i], self->arr[value]); \
+		prefix##_swap(&self->arr[i], &self->arr[value]); \
 		prefix##_heapify(self, cur_size, value); \
 	} \
 } \
-prefix##_heap* prefix##_heapInit(uint32_t max_size, uint8_t (*cmp)(void*, void*)) { \
+prefix##_heap* prefix##_heapInit(uint32_t max_size, uint8_t (*cmp)(type*, type*)) { \
 	if (max_size == 0) \
 		return NULL; \
 	\
@@ -59,10 +61,10 @@ static uint8_t prefix##_heapDoubleMaxSizeFailed(prefix##_heap* self) { \
 	if (self == NULL) \
 		abort(); \
 	\
-	void** arr = realloc(self->arr, sizeof(*(self->arr)) * (self->max_size << 1)); \
+	type** arr = realloc(self->arr, sizeof(*(self->arr)) * (self->max_size << 1)); \
 	if (arr == NULL) \
 		return 1; \
-	\
+	self->max_size <<= 1; \
 	self->arr = arr; \
 	\
 	return 0; \
@@ -71,7 +73,6 @@ void prefix##_heapPush(prefix##_heap* self, type* value) { \
 	if (self == NULL || self->arr == NULL) \
 		abort(); \
 	if (prefix##_heapIsFull(self)) \
-	/* if(self->cur_size == self->max_size) \ */ \
 		if (prefix##_heapDoubleMaxSizeFailed(self)) \
 			abort(); \
 	\
@@ -79,19 +80,19 @@ void prefix##_heapPush(prefix##_heap* self, type* value) { \
 	\
 	self->arr[child] = value; \
 	while (child > 0 && self->cmp(self->arr[child], self->arr[child >> 1])) { \
-		swap(self->arr[child], self->arr[child >> 1]); \
+		prefix##_swap(&self->arr[child], &self->arr[child >> 1]); \
 		child >>= 1; \
 	} \
 	self->cur_size += 1; \
 } \
-void* prefix##_heapPop(prefix##_heap* self) { \
+type* prefix##_heapPop(prefix##_heap* self) { \
 	if (self == NULL || self->arr == NULL || prefix##_heapIsEmpty(self)) \
 		abort(); \
 	\
-	void* value = self->arr[0]; \
+	type* value = self->arr[0]; \
 	\
-	self->arr[0] = self->arr[self->cur_size - 1]; \
 	self->cur_size -= 1; \
+	self->arr[0] = self->arr[self->cur_size]; \
 	prefix##_heapify(self, self->cur_size, 0); \
 	\
 	return value; \
