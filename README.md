@@ -4,8 +4,7 @@ Implementing heap is done by a macro which generate code for heap structure and 
 
 Example usage: 
 ```c
-// first goes data type then prefix of functions
-// DEFINE_HEAP_OF(type, prefix)
+// DEFINE_HEAP_OF(data_type, functions_prefix)
 DEFINE_HEAP_OF(int, myInt)
 ```
 
@@ -23,4 +22,14 @@ uint8_t myInt_heapIsEmpty(myInt_heap * self) { ... }
 
 // and some helper functions
 
+```
+When using:
+```c
+uint8_t myCmp(int *a, int *b) {
+  return *a > *b;
+}
+// ...
+// when creating your own heap you need to pass comparator funcion
+myInt* heap = myInt_heapInit(10, myCmp);
+// ...
 ```
