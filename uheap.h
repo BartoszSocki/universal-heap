@@ -14,29 +14,29 @@ typedef struct prefix##_heap_t { \
 	uint8_t (*cmp)(type*, type*); \
 } prefix##_heap; \
 \
-void prefix##_swap(type** a, type** b) { \
+static void _##prefix##_swap(type** a, type** b) { \
 	type* tmp = *a; \
 	*a = *b; \
 	*b = tmp; \
 } \
-void prefix##_heapify(prefix##_heap* self, uint32_t cur_size, uint32_t i) { \
+static void _##prefix##_heapify(prefix##_heap* self, uint32_t cur_size, uint32_t i) { \
 	if (self->arr == NULL) \
 		abort(); \
 	\
-	uint32_t value = i; \
+	uint32_t elem_index = i; \
 	uint32_t left = 2 * i + 1; \
 	uint32_t right = 2 * i + 2; \
 	\
-	if (left < cur_size && self->cmp(self->arr[left], self->arr[value])) { \
-		value = left; \
+	if (left < cur_size && self->cmp(self->arr[left], self->arr[elem_index])) { \
+		elem_index = left; \
 	} \
-	if (right < cur_size && self->cmp(self->arr[right], self->arr[value])) { \
-		value = right; \
+	if (right < cur_size && self->cmp(self->arr[right], self->arr[elem_index])) { \
+		elem_index = right; \
 	} \
 	\
-	if (value != i) { \
-		prefix##_swap(&self->arr[i], &self->arr[value]); \
-		prefix##_heapify(self, cur_size, value); \
+	if (elem_index != i) { \
+		_##prefix##_swap(&self->arr[i], &self->arr[elem_index]); \
+		_##prefix##_heapify(self, cur_size, elem_index); \
 	} \
 } \
 prefix##_heap* prefix##_heapInit(uint32_t max_size, uint8_t (*cmp)(type*, type*)) { \
@@ -57,7 +57,7 @@ uint8_t prefix##_heapIsFull(prefix##_heap* self) { \
 uint8_t prefix##_heapIsEmpty(prefix##_heap* self) { \
 	return self->cur_size == 0; \
 } \
-static uint8_t prefix##_heapDoubleMaxSizeFailed(prefix##_heap* self) { \
+static uint8_t _##prefix##_heapDoubleMaxSizeFailed(prefix##_heap* self) { \
 	if (self == NULL) \
 		abort(); \
 	\
@@ -73,14 +73,14 @@ void prefix##_heapPush(prefix##_heap* self, type* value) { \
 	if (self == NULL || self->arr == NULL) \
 		abort(); \
 	if (prefix##_heapIsFull(self)) \
-		if (prefix##_heapDoubleMaxSizeFailed(self)) \
+		if (_##prefix##_heapDoubleMaxSizeFailed(self)) \
 			abort(); \
 	\
 	uint32_t child = self->cur_size; \
 	\
 	self->arr[child] = value; \
 	while (child > 0 && self->cmp(self->arr[child], self->arr[child >> 1])) { \
-		prefix##_swap(&self->arr[child], &self->arr[child >> 1]); \
+		_##prefix##_swap(&self->arr[child], &self->arr[child >> 1]); \
 		child >>= 1; \
 	} \
 	self->cur_size += 1; \
@@ -93,9 +93,9 @@ type* prefix##_heapPop(prefix##_heap* self) { \
 	\
 	self->cur_size -= 1; \
 	self->arr[0] = self->arr[self->cur_size]; \
-	prefix##_heapify(self, self->cur_size, 0); \
+	_##prefix##_heapify(self, self->cur_size, 0); \
 	\
 	return value; \
-} \
+}
 
 #endif
