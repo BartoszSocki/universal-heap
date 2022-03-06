@@ -58,7 +58,7 @@ uint8_t prefix##_heapIsEmpty(prefix##_heap* self) { \
 	return self->cur_size == 0; \
 } \
 static uint8_t _##prefix##_heapDoubleMaxSizeFailed(prefix##_heap* self) { \
-	if (self == NULL) \
+	if (self == NULL || self->arr == NULL) \
 		abort(); \
 	\
 	type** arr = realloc(self->arr, sizeof(*(self->arr)) * (self->max_size << 1)); \
