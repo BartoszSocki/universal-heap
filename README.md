@@ -26,7 +26,7 @@ uint8_t myInt_heapIsEmpty(myInt_heap * self) { ... }
 When using:
 ```c
 uint8_t myCmp(int *a, int *b) {
-  return *a > *b;
+  ...
 }
 // ...
 // when creating your own heap you need to pass comparator funcion
